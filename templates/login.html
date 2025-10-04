@@ -7,11 +7,13 @@
 </head>
 <body>
     <h1>Login</h1>
-    <form>
-        <input type="email" placeholder="Email" required><br>
-        <input type="password" placeholder="Password" required><br>
+    <form method="POST" action="/login">
+        <input type="email" name="email" required><br>
+        <input type="password" name="password" required><br>
         <button type="submit">Sign in</button>
-        <p>Don't have an account ?</p> <a href="register.html">Sign up</a>
+        <p>Don't have an account ?</p> <a href="/register">Sign up</a>
+        <p>Solve: {CAPTCHA_QUESTION} = ?</p>
+        <input type="text" name="captcha_input" required>
     </form>
 </body>
 </html>

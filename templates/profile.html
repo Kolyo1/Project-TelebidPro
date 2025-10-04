@@ -1,15 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bg">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile</title>
 </head>
 <body>
-    <h1>Your Profile</h1>
-    <p>Email: {{ email }}</p>
-    <p>First Name: {}</p>
-    <p>Last Name: {}</p>
-    <a href="login.html">Logout</a>
+    <h1>Change Profile</h1>
+
+    <form method="POST" action="/profile">
+        <label>New First name:</label><br>
+        <input type="text" name="first_name" placeholder="First name"><br><br>
+
+        <label>New Last name:</label><br>
+        <input type="text" name="last_name" placeholder="Last name"><br><br>
+
+        <label>New password:</label><br>
+        <input type="password" name="password" placeholder="New password"><br><br>
+
+        <button type="submit">Save</button>
+    </form>
+
+    <p><a href="/">Return</a></p>
 </body>
 </html>

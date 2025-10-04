@@ -1,96 +1,102 @@
 import psycopg2
 from psycopg2 import sql
-from psycopg2.extras import RealDictCursor
-import hashlib
 
-def connect_db():
-    conn = psycopg2.connect(
-        host="localhost",
-        dbname="my_app",
-        user="my_ussername",
-        password="my_password",
+DB_NAME = "telebidpro"
+DB_USER = "prom4"   
+DB_PASS = "your_password" 
+DB_HOST = "localhost"
+DB_PORT = "5432"
+
+def db_connect():
+    return psycopg2.connect(
+        dbname=DB_NAME,
+        user=DB_USER,
+        password=DB_PASS,
+        host=DB_HOST,
+        port=DB_PORT
     )
-    return conn
 
-def create_table():
-    conn = connect_db()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            email VARCHAR(255) UNIQUE NOT NULL,
-            first_name VARCHAR(100),
-            last_name VARCHAR(100),
-            password_hash VARCHAR(255) NOT NULL
-        );
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
 
-def hash_password(password:str) -> str:
-    return hasattr.sha256(password.encode()).hexdigest()
-
-def create_user(email,fName,lName,password):
+def create_user(email, first_name, last_name, password):
     try:
-        conn = connect_db()
+        conn = db_connect()
         cur = conn.cursor()
-        password_hash = hash_password(password)
-        
-        cur.execute("""
-            INSERT INTO users (email, first_name, last_name, password_hash)
+        query = """
+            INSERT INTO users (email, first_name, last_name, password)
             VALUES (%s, %s, %s, %s)
-        """, (email, fName, lName, password_hash))
-
+        """
+        cur.execute(query, (email, first_name, last_name, password))
         conn.commit()
         cur.close()
         conn.close()
+        print("✅ User created successfully!")
         return True
     except Exception as e:
-        return("Failed", e)
-        return True
+        print("Database error:", e)
+        return False
 
-def get_user_by_email(email):
-    conn = connect_db
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM users WHERE email = %s", email)
-    user = cur.fetchone()                    
-    cur.close()
-    conn.close()
-    return user
 
-def update_user(email, new_Fname=None, new_Lname=None, new_password = None):
+def update_user(email, new_Fname =None, new_Lname = None,new_password = None):
     try:
-        conn = connect_db()
+        conn = db_connect()
         cur = conn.cursor()
-
-        if new_password:
-            new_password = hash_password(new_password)
 
         fields = []
         values = []
 
         if new_Fname:
-            fields.append("Fname = %s")
+            fields.append("first_name = %s")
             values.append(new_Fname)
         if new_Lname:
-            fields.append("Lname = %s")
-            values.append(new_Fname)
+            fields.append("last_name = %s")
+            values.append(new_Lname)
         if new_password:
-            fields.append("hash_password = %s")
+            fields.append("password = %s")
             values.append(new_password)
-
-        if fields:
+        if not fields:
             return False
-
+        
+        query = f"UPDATE users SET {', '.join(fields)} WHERE email = %s"
         values.append(email)
-        query = f"UPDATE users SET{', '.join(fields)} WHERE email = %s"
 
         cur.execute(query, tuple(values))
         conn.commit()
         cur.close()
         conn.close()
         return True
+    
     except Exception as e:
-        print("Invalid", e)
+        print("Update user error:", e)
+        return False
+
+
+
+def get_user_by_email(email):
+    try:
+        conn = db_connect()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM users WHERE email = %s", (email,))
+        user = cur.fetchone()
+        cur.close()
+        conn.close()
+        return user
+    except Exception as e:
+        print("Select error:", e)
+        return None
+    
+def check_credentials(email, password):
+    try:
+        conn = db_connect()
+        cur = conn.cursor()
+        cur.execute("SELECT password FROM users WHERE email = %s", (email, ))
+        result = cur.fetchone()
+        cur.close()
+        conn.close()
+        if result is None:
+            return False
+        
+        db_password = result[0]
+        return db_password == password
+    except Exception as e :
+        print("Login error: ", e)
         return False
